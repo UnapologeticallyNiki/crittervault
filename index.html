@@ -1185,6 +1185,16 @@ function exportCSV() {
 }
 
 // ── CSV IMPORT ────────────────────────────────────────────────────────────────
+function mergeArr(existingArr, cellStr) {
+  const incoming = cellToArr(cellStr);
+  if (!incoming.length) return existingArr || [];
+  const base = existingArr || [];
+  const seen = new Set(base.map(s=>s.toLowerCase()));
+  const merged = base.slice();
+  for (const item of incoming) { if (!seen.has(item.toLowerCase())) { merged.push(item); seen.add(item.toLowerCase()); } }
+  return merged;
+}
+
 function importCSV(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
@@ -1198,26 +1208,30 @@ function importCSV(e) {
         const get = col => { const idx=headers.indexOf(col); return idx>-1?vals[idx]?.trim()||'':''; };
         const name = get('name'); if (!name) continue;
         const existing = critters.find(c=>c.name.toLowerCase()===name.toLowerCase());
+        const keep = (field, fallback) => { const v = get(field); return v !== '' ? v : (existing ? existing[fallback ?? field] : ''); };
         const critter = {
           id: existing?existing.id:genId(),
-          name, emoji: get('emoji')||'🐾',
-          family: get('family'), species: get('species'),
-          age: get('age'), status: get('status')||'Researching',
-          comfort: get('comfort'), favorite: get('favorite').toLowerCase()==='yes',
-          personality: get('personality'),
-          facts: cellToArr(get('facts')),
-          quotes: cellToArr(get('quotes')),
-          wisdom: cellToArr(get('wisdom')),
-          metaphors: cellToArr(get('metaphors')),
-          problems: cellToArr(get('problems')),
-          topics: cellToArr(get('topics')),
-          editions: cellToArr(get('editions')),
-          related: cellToArr(get('related')),
-          symbiosis: cellToArr(get('symbiosis')),
-          sources: cellToArr(get('sources')),
-          tryToday: get('trytoday'),
-          notes: get('notes'),
-          audioNote: get('audionote'),
+          name,
+          emoji: get('emoji') || (existing?existing.emoji:'') || '🐾',
+          family: keep('family'), species: keep('species'),
+          age: keep('age'),
+          status: get('status') || (existing?existing.status:'') || 'Researching',
+          comfort: keep('comfort'),
+          favorite: get('favorite') !== '' ? get('favorite').toLowerCase()==='yes' : (existing?existing.favorite:false),
+          personality: keep('personality'),
+          facts: mergeArr(existing?existing.facts:[], get('facts')),
+          quotes: mergeArr(existing?existing.quotes:[], get('quotes')),
+          wisdom: mergeArr(existing?existing.wisdom:[], get('wisdom')),
+          metaphors: mergeArr(existing?existing.metaphors:[], get('metaphors')),
+          problems: mergeArr(existing?existing.problems:[], get('problems')),
+          topics: mergeArr(existing?existing.topics:[], get('topics')),
+          editions: mergeArr(existing?existing.editions:[], get('editions')),
+          related: mergeArr(existing?existing.related:[], get('related')),
+          symbiosis: mergeArr(existing?existing.symbiosis:[], get('symbiosis')),
+          sources: mergeArr(existing?existing.sources:[], get('sources')),
+          tryToday: keep('trytoday', 'tryToday'),
+          notes: keep('notes'),
+          audioNote: keep('audionote', 'audioNote'),
           imageData: existing?existing.imageData||'':'',
           audioData: existing?existing.audioData||'':'',
         };
