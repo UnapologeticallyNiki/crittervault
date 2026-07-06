@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Critter Vault">
+<meta name="theme-color" content="#0a000a">
+<title>Creature Comforts — Critter Vault</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --pink: #ff2d78; --pink-dark: #cc2060; --pink-dim: #3a003a;
+    --bg: #0a000a; --bg2: #0d000d; --bg3: #1a001a;
+    --text: #f0d0f0; --text-dim: #aa88aa; --text-muted: #664466; --border: #2a002a;
+    --green: #00cc66; --amber: #ffaa00; --blue: #4488ff;
+  }
+  html, body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+  #app { max-width: 640px; margin: 0 auto; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(160deg,#1a001a 0%,#0d000d 100%); border-bottom: 2px solid var(--pink); padding: 14px 16px 10px; position: sticky; top: 0; z-index: 100; }
+  .header-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .header-paw { font-size: 26px; }
+  .header-title { font-size: 17px; font-weight: 900; color: var(--pink); }
+  .header-sub { font-size: 11px; color: #cc44aa; font-weight: 600; margin-top: 1px; }
+  .header-tagline { font-size: 11px; color: var(--text-muted); font-style: italic; }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg2); }
+  .tab { flex: 1; padding: 10px 4px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+
+  /* CONTROLS */
+  .controls { padding: 10px 14px 6px; }
+  .search-box { width: 100%; background: var(--bg3); border: 1px solid var(--pink-dim); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; margin-bottom: 8px; }
+  .search-box::placeholder { color: var(--text-muted); }
+  .filter-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; }
+  .filter-label { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .chip { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid var(--pink-dim); background: var(--bg2); color: #888; transition: all 0.15s; white-space: nowrap; }
+  .chip.active { background: var(--pink); color: #000; border-color: var(--pink); }
+  .chip.green { border-color: var(--green); } .chip.green.active { background: var(--green); }
+  .chip.amber { border-color: var(--amber); } .chip.amber.active { background: var(--amber); color: #000; }
+
+  /* STATS */
+  .stats-bar { display: flex; gap: 12px; padding: 4px 14px 8px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+  .stats-highlight { color: var(--pink); font-weight: 700; }
+
+  /* CARD */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; margin: 0 14px 10px; overflow: hidden; transition: border-color 0.15s; }
+  .card.open { border-color: var(--pink-dim); }
+  .card.favorite { border-color: #ffaa00; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; cursor: pointer; }
+  .card-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .card-emoji { font-size: 24px; flex-shrink: 0; }
+  .card-img-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1px solid var(--pink-dim); flex-shrink: 0; }
+  .card-info { min-width: 0; flex: 1; }
+  .card-name { color: var(--pink); font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+  .card-preview { color: #666; font-size: 11px; }
+  .card-actions { display: flex; gap: 2px; flex-shrink: 0; }
+  .icon-btn { background: none; border: none; font-size: 15px; padding: 4px 5px; cursor: pointer; border-radius: 6px; }
+  .icon-btn:active { background: var(--bg3); }
+
+  /* STATUS BADGES */
+  .status-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-researching { background: #1a1a00; color: var(--amber); border: 1px solid var(--amber); }
+  .status-draft { background: #001a1a; color: var(--blue); border: 1px solid var(--blue); }
+  .status-complete { background: #001a00; color: var(--green); border: 1px solid var(--green); }
+
+  /* FAMILY BADGE */
+  .family-badge { font-size: 10px; color: var(--text-muted); background: var(--bg3); border: 1px solid var(--border); padding: 1px 7px; border-radius: 10px; }
+
+  /* AGE BADGE */
+  .age-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+  .age-all { background: #1a001a; color: #cc88cc; border: 1px solid #440044; }
+  .age-ya { background: #001a0d; color: #00cc66; border: 1px solid #006633; }
+  .age-mature { background: #1a0000; color: #ff6644; border: 1px solid #662200; }
+
+  /* CARD BODY */
+  .card-body { padding: 0 13px 13px; border-top: 1px solid var(--border); }
+  .section { margin-top: 11px; }
+  .section-label { color: var(--pink); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .body-text { font-size: 13px; color: #d0a0d0; line-height: 1.55; }
+  .quote-block { background: var(--bg3); border-left: 3px solid var(--pink); padding: 7px 11px; border-radius: 0 8px 8px 0; font-size: 13px; color: #f0c0f0; font-style: italic; margin-bottom: 5px; }
+  .wisdom-item { font-size: 13px; color: #d0a0d0; border-left: 3px solid var(--pink); padding-left: 9px; margin-bottom: 5px; line-height: 1.5; }
+  .meta-item { font-size: 13px; color: #cc88cc; margin-bottom: 4px; }
+  .notes-text { font-size: 13px; color: #aaa; font-style: italic; line-height: 1.5; }
+  .source-item { font-size: 12px; color: #4488ff; margin-bottom: 3px; }
+  .comfort-beginner { background: #001a00; color: #66dd66; border: 1px solid #66dd66; }
+  .comfort-growing { background: #001a0a; color: #00cc88; border: 1px solid #00cc88; }
+  .comfort-deep { background: #0a1a00; color: #88cc00; border: 1px solid #88cc00; }
+  .try-today-box { background: linear-gradient(135deg,#1a0010,#0d000d); border: 1px solid var(--pink); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+  .try-today-label { color: var(--pink); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .try-today-text { font-size: 14px; color: #f0d0f0; line-height: 1.7; white-space: pre-wrap; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+  .tag { display: inline-flex; align-items: center; gap: 2px; background: var(--bg3); border: 1px solid var(--pink); color: var(--pink); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+
+  /* CRITTER IMAGE */
+  .critter-image { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-top: 4px; border: 1px solid var(--pink-dim); }
+
+  /* AUDIO PLAYER */
+  .audio-player { width: 100%; margin-top: 4px; filter: invert(0); accent-color: var(--pink); }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 24px; right: 20px; background: var(--pink); color: #000; font-weight: 900; font-size: 28px; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(255,45,120,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; transition: transform 0.1s; }
+  .fab:active { transform: scale(0.93); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 50px 20px; color: #444; }
+  .empty-icon { font-size: 44px; margin-bottom: 10px; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 300; overflow-y: auto; display: none; flex-direction: column; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg2); border-top: 2px solid var(--pink); border-radius: 18px 18px 0 0; margin-top: auto; padding: 18px 15px 40px; width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; animation: slideUp 0.22s ease; }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-title { color: var(--pink); font-weight: 900; font-size: 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .modal-close { background: none; border: none; color: var(--text-dim); font-size: 24px; cursor: pointer; padding: 0 4px; }
+
+  /* FORM */
+  .form-row { margin-bottom: 13px; }
+  .form-label { display: block; color: var(--pink); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .form-input, .form-textarea, .form-select { width: 100%; background: var(--bg3); border: 1px solid var(--pink-dim); border-radius: 8px; padding: 9px 11px; color: var(--text); font-size: 14px; outline: none; font-family: inherit; }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--pink); }
+  .form-textarea { resize: vertical; min-height: 65px; }
+  .form-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ff2d78' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .form-select option { background: #1a001a; color: var(--text); }
+  .emoji-name-row { display: flex; gap: 8px; }
+  .emoji-input { width: 65px; text-align: center; font-size: 20px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .list-add-row { display: flex; gap: 7px; margin-bottom: 5px; }
+  .list-add-row .form-input { flex: 1; }
+  .list-item { display: flex; justify-content: space-between; align-items: flex-start; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; margin-bottom: 5px; gap: 7px; }
+  .list-item-text { flex: 1; font-size: 13px; color: #d0a0d0; line-height: 1.4; }
+  .list-item-del { background: none; border: none; color: var(--pink); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
+  .topic-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 7px; }
+  .form-file { width: 100%; background: var(--bg3); border: 1px solid var(--pink-dim); border-radius: 8px; padding: 8px 11px; color: var(--text-dim); font-size: 13px; cursor: pointer; }
+  .form-file::file-selector-button { background: var(--pink); color: #000; border: none; border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 10px; }
+  .image-preview { width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; margin-top: 6px; border: 1px solid var(--pink-dim); display: none; }
+  .star-toggle { background: none; border: 1px solid #ffaa00; border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; color: #ffaa00; font-weight: 700; transition: all 0.15s; }
+  .star-toggle.active { background: #ffaa00; color: #000; }
+
+  /* BUTTONS */
+  .btn-primary { width: 100%; background: var(--pink); color: #000; font-weight: 800; font-size: 15px; border: none; border-radius: 12px; padding: 13px; cursor: pointer; margin-bottom: 9px; }
+  .btn-primary:active { background: var(--pink-dark); }
+  .btn-ghost { width: 100%; background: transparent; color: var(--pink); font-weight: 700; font-size: 14px; border: 1px solid var(--pink); border-radius: 12px; padding: 11px; cursor: pointer; }
+  .btn-small { background: var(--bg3); color: var(--pink); border: 1px solid var(--pink-dim); border-radius: 8px; padding: 7px 13px; cursor: pointer; font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+  /* CONFIRM */
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 400; display: none; align-items: center; justify-content: center; }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box { background: var(--bg2); border: 1px solid var(--pink); border-radius: 16px; padding: 22px 18px; max-width: 300px; width: 90%; text-align: center; }
+  .confirm-title { color: var(--pink); font-weight: 800; font-size: 15px; margin-bottom: 7px; }
+  .confirm-msg { color: var(--text-dim); font-size: 13px; margin-bottom: 18px; }
+  .confirm-btns { display: flex; gap: 9px; }
+  .confirm-btns button { flex: 1; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%); background: var(--pink); color: #000; font-weight: 700; padding: 9px 18px; border-radius: 30px; font-size: 13px; z-index: 500; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  /* DIVIDER */
+  .form-divider { border: none; border-top: 1px solid var(--pink-dim); margin: 14px 0 10px; }
+  .spacer { height: 90px; }
+
+  /* EXPORT/IMPORT */
+  .data-bar { display: flex; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--bg2); }
+  .btn-data { flex: 1; background: var(--bg3); border: 1px solid var(--pink-dim); color: var(--pink); border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+  .btn-data:active { background: var(--pink-dim); }
+  .btn-data.import { border-color: var(--green); color: var(--green); }
+
+  /* PROFILE VIEW */
+  .profile-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 250; overflow-y: auto; display: none; flex-direction: column; }
+  .profile-overlay.open { display: flex; }
+  .profile-back { display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: var(--bg2); border-bottom: 1px solid var(--pink-dim); cursor: pointer; position: sticky; top: 0; z-index: 10; }
+  .profile-back-arrow { color: var(--pink); font-size: 20px; }
+  .profile-back-label { color: var(--pink); font-size: 13px; font-weight: 700; }
+  .profile-hero { background: linear-gradient(160deg,#1a001a,#0d000d); padding: 24px 18px 18px; border-bottom: 1px solid var(--pink-dim); text-align: center; }
+  .profile-hero-emoji { font-size: 64px; margin-bottom: 8px; }
+  .profile-hero-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pink); margin-bottom: 10px; }
+  .profile-hero-name { color: var(--pink); font-size: 24px; font-weight: 900; margin-bottom: 6px; }
+  .profile-hero-tagline { color: var(--text-dim); font-size: 14px; font-style: italic; margin-bottom: 10px; }
+  .profile-hero-badges { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+  .profile-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg2); overflow-x: auto; }
+  .profile-tab { flex-shrink: 0; padding: 10px 14px; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .profile-tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+  .profile-section { padding: 18px; display: none; }
+  .profile-section.active { display: block; }
+  .profile-section-title { color: var(--pink); font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--pink-dim); }
+  .profile-quote { background: var(--bg3); border-left: 4px solid var(--pink); padding: 12px 14px; border-radius: 0 10px 10px 0; font-size: 15px; color: #f0c0f0; font-style: italic; margin-bottom: 10px; line-height: 1.6; }
+  .profile-wisdom { font-size: 14px; color: #d0a0d0; border-left: 3px solid var(--pink); padding-left: 12px; margin-bottom: 10px; line-height: 1.6; }
+  .profile-fact { font-size: 14px; color: #aac4ff; border-left: 3px solid #4488ff; padding-left: 12px; margin-bottom: 10px; line-height: 1.6; }
+  .profile-metaphor { font-size: 14px; color: #cc88ff; border-left: 3px solid #cc88ff; padding-left: 12px; margin-bottom: 10px; line-height: 1.6; }
+  .friend-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+  .friend-card { background: var(--bg3); border: 1px solid var(--pink-dim); border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+  .friend-card:active { border-color: var(--pink); }
+  .friend-emoji { font-size: 28px; margin-bottom: 4px; }
+  .friend-name { font-size: 11px; color: var(--pink); font-weight: 700; line-height: 1.3; }
+  .friend-why { font-size: 10px; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+  .also-viewed { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .also-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: border-color 0.15s; }
+  .also-card:active { border-color: var(--pink); }
+  .also-emoji { font-size: 18px; }
+  .also-name { font-size: 12px; color: var(--text-dim); font-weight: 600; }
+  .problem-pill { display: inline-block; background: var(--bg3); border: 1px solid #cc88ff; color: #cc88ff; border-radius: 20px; padding: 4px 12px; font-size: 12px; margin: 3px; }
+  .try-today-profile { background: linear-gradient(135deg,#1a0010,#0d000d); border: 1px solid var(--pink); border-radius: 14px; padding: 16px; }
+  .try-today-profile-label { color: var(--pink); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .try-today-profile-text { font-size: 15px; color: #f0d0f0; line-height: 1.8; white-space: pre-wrap; }
+  .symbiosis-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; margin-bottom: 8px; font-size: 13px; color: #cc88cc; }
+
+  /* LOGIN */
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-box { width: 100%; max-width: 340px; background: var(--bg2); border: 1px solid var(--pink-dim); border-radius: 18px; padding: 28px 22px; text-align: center; }
+  .login-paw { font-size: 40px; margin-bottom: 6px; }
+  .login-title { color: var(--pink); font-weight: 900; font-size: 18px; margin-bottom: 2px; }
+  .login-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+  .login-error { color: #ff6644; font-size: 12px; margin-top: 8px; min-height: 16px; }
+  .login-loading { color: var(--text-muted); font-size: 13px; padding: 40px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen" style="display:none">
+  <div class="login-box">
+    <div class="login-paw">🐾</div>
+    <div class="login-title">Critter Vault</div>
+    <div class="login-sub">Creature Comforts Academy</div>
+    <div class="form-row" style="text-align:left">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="loginEmail" type="email" autocomplete="username">
+    </div>
+    <div class="form-row" style="text-align:left">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="loginPassword" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin()}">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Log In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="login-loading" id="loadingScreen">Loading your critters…</div>
+
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="header-brand">
+      <span class="header-paw">🐾</span>
+      <div>
+        <div class="header-title">Creature Comforts Companion Academy</div>
+        <div class="header-sub">Critter Vault</div>
+      </div>
+    </div>
+    <div class="header-tagline">Lessons from critters. Wisdom for life.
+      <span onclick="doLogout()" style="float:right;color:#cc44aa;cursor:pointer;text-decoration:underline">Log out</span>
+    </div>
+  </div>
+
+  <div class="data-bar">
+    <button class="btn-data" onclick="exportJSON()">📤 JSON Backup</button>
+    <button class="btn-data import" onclick="document.getElementById('importFile').click()">📥 JSON Restore</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="data-bar" style="border-top:none;padding-top:0">
+    <button class="btn-data" onclick="exportCSV()">📊 CSV Export</button>
+    <button class="btn-data import" onclick="document.getElementById('importCSV').click()">📊 CSV Import</button>
+    <button class="btn-data" style="border-color:#aa88aa;color:#aa88aa" onclick="downloadTemplate()">📋 Blank Template</button>
+    <input type="file" id="importCSV" accept=".csv" style="display:none" onchange="importCSV(event)">
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-all" onclick="setTab('all')">🐾 All</div>
+    <div class="tab" id="tab-favs" onclick="setTab('favs')">⭐ Favourites</div>
+    <div class="tab" id="tab-draft" onclick="setTab('draft')">✏️ In Progress</div>
+    <div class="tab" id="tab-complete" onclick="setTab('complete')">✅ Complete</div>
+  </div>
+
+  <div class="controls">
+    <input class="search-box" id="searchInput" placeholder="🔍 Search critters, quotes, wisdom, problems…" oninput="renderAll()">
+    <div class="filter-row" id="filterFamily">
+      <span class="filter-label">Family:</span>
+    </div>
+    <div class="filter-row" id="filterTopic">
+      <span class="filter-label">Topic:</span>
+    </div>
+    <div class="filter-row" id="filterAge">
+      <span class="filter-label">Age:</span>
+    </div>
+    <div class="filter-row" id="filterComfort">
+      <span class="filter-label">Journey Stage:</span>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar"></div>
+  <div id="cardList"></div>
+  <div class="spacer"></div>
+  <button class="fab" onclick="openForm(null)">+</button>
+</div>
+
+<!-- PROFILE VIEW -->
+<div class="profile-overlay" id="profileOverlay">
+  <div class="profile-back" onclick="closeProfile()">
+    <span class="profile-back-arrow">←</span>
+    <span class="profile-back-label">Back to Vault</span>
+  </div>
+  <div id="profileContent"></div>
+</div>
+
+<!-- FORM MODAL -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="formTitle">✨ New Critter</span>
+      <button class="modal-close" onclick="closeForm()">×</button>
+    </div>
+    <input type="hidden" id="editId">
+
+    <!-- Basic Info -->
+    <div class="emoji-name-row form-row">
+      <div><label class="form-label">Emoji</label><input class="form-input emoji-input" id="fEmoji" maxlength="4" value="🐾"></div>
+      <div style="flex:1"><label class="form-label">Companion Name</label><input class="form-input" id="fName" placeholder="e.g. Claude the Kangaroo"></div>
+    </div>
+
+    <div class="two-col form-row">
+      <div>
+        <label class="form-label">Companion Type</label>
+        <select class="form-select" id="fFamily">
+          <option value="">Select…</option>
+          <option>🐾 Creature Companion</option>
+          <option>🧭 Tool Companion</option>
+          <option>🌿 Nature Companion</option>
+          <option>✨ Symbol Companion</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Species / Kind (optional)</label>
+        <input class="form-input" id="fSpecies" placeholder="e.g. Marsupial, Compass…">
+      </div>
+    </div>
+
+    <div class="two-col form-row">
+      <div>
+        <label class="form-label">Age Level</label>
+        <select class="form-select" id="fAge">
+          <option value="">Select…</option>
+          <option>All Ages</option><option>Young Adult</option><option>Mature</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col form-row">
+      <div>
+        <label class="form-label">Status</label>
+        <select class="form-select" id="fStatus">
+          <option value="Researching">Researching</option>
+          <option value="Draft">Draft</option>
+          <option value="Complete">Complete</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Comfort Level</label>
+        <select class="form-select" id="fComfort">
+          <option value="">Select…</option>
+          <option>🌱 Beginner</option>
+          <option>🌿 Growing</option>
+          <option>🌳 Deep Thinking</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;display:flex;align-items:center">
+      <button class="star-toggle" id="fFavBtn" onclick="toggleFav()">⭐ Favourite</button>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Personality & Role</label>
+      <textarea class="form-textarea" id="fPersonality" placeholder="Who is this critter? What do they do?"></textarea>
+    </div>
+
+    <hr class="form-divider">
+
+    <div class="form-row">
+      <label class="form-label">Natural Facts (real animal behaviour)</label>
+      <div class="list-add-row"><input class="form-input" id="fFactDraft" placeholder="e.g. Kangaroos can't walk backwards…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('facts','fFactDraft')}"><button class="btn-small" onclick="addListItem('facts','fFactDraft')">Add</button></div>
+      <div id="factsList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Quotes</label>
+      <div class="list-add-row"><input class="form-input" id="fQuoteDraft" placeholder="Add a quote…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('quotes','fQuoteDraft')}"><button class="btn-small" onclick="addListItem('quotes','fQuoteDraft')">Add</button></div>
+      <div id="quotesList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Wisdom / Lessons (general)</label>
+      <div class="list-add-row"><input class="form-input" id="fWisdomDraft" placeholder="Add a wisdom lesson…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('wisdom','fWisdomDraft')}"><button class="btn-small" onclick="addListItem('wisdom','fWisdomDraft')">Add</button></div>
+      <div id="wisdomList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Metaphorical Wisdom</label>
+      <div class="list-add-row"><input class="form-input" id="fMetaDraft" placeholder="Deeper metaphorical meaning…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('metaphors','fMetaDraft')}"><button class="btn-small" onclick="addListItem('metaphors','fMetaDraft')">Add</button></div>
+      <div id="metaphorsList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Problems This Critter Solves</label>
+      <div class="list-add-row"><input class="form-input" id="fProblemDraft" placeholder="e.g. Doubt and second-guessing…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('problems','fProblemDraft')}"><button class="btn-small" onclick="addListItem('problems','fProblemDraft')">Add</button></div>
+      <div id="problemsList"></div>
+    </div>
+
+    <hr class="form-divider">
+
+    <div class="form-row">
+      <label class="form-label">Topics / Themes</label>
+      <div class="topic-grid" id="topicGrid"></div>
+      <div class="list-add-row"><input class="form-input" id="fTopicCustom" placeholder="Add custom topic…" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTopic()}"><button class="btn-small" onclick="addCustomTopic()">Add</button></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Related Critters</label>
+      <div class="list-add-row"><input class="form-input" id="fRelatedDraft" placeholder="e.g. Terry the Bomber…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('related','fRelatedDraft')}"><button class="btn-small" onclick="addListItem('related','fRelatedDraft')">Add</button></div>
+      <div id="relatedList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Symbiotic Relationships</label>
+      <div class="list-add-row"><input class="form-input" id="fSymbDraft" placeholder="e.g. Terry clears the path, Claude leaps…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('symbiosis','fSymbDraft')}"><button class="btn-small" onclick="addListItem('symbiosis','fSymbDraft')">Add</button></div>
+      <div id="symbiosisList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Creature Comforts Editions</label>
+      <input class="form-input" id="fEditions" placeholder="e.g. Koalalogic, Turtleology (comma separated)">
+    </div>
+
+    <hr class="form-divider">
+
+    <div class="form-row">
+      <label class="form-label">Critter Image</label>
+      <input type="file" class="form-file" id="fImage" accept="image/*" onchange="handleImageUpload(event)">
+      <img id="imagePreview" class="image-preview">
+      <input type="hidden" id="fImageData">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Audio (note / recording)</label>
+      <input type="file" class="form-file" id="fAudio" accept="audio/*" onchange="handleAudioUpload(event)">
+      <div id="audioPreview"></div>
+      <input type="hidden" id="fAudioData">
+      <input class="form-input" id="fAudioNote" placeholder="Or add an audio note / link…" style="margin-top:6px">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">References / Sources</label>
+      <div class="list-add-row"><input class="form-input" id="fSourceDraft" placeholder="Book, website, documentary…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('sources','fSourceDraft')}"><button class="btn-small" onclick="addListItem('sources','fSourceDraft')">Add</button></div>
+      <div id="sourcesList"></div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">🐾 Try This Today</label>
+      <textarea class="form-textarea" id="fTryToday" placeholder="One practical action. Keep it simple and doable…"></textarea>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Planning Notes (private)</label>
+      <textarea class="form-textarea" id="fNotes" placeholder="Private ideas, staging notes, plans…"></textarea>
+    </div>
+
+    <button class="btn-primary" onclick="saveCritter()">Save Critter 🐾</button>
+    <button class="btn-ghost" onclick="closeForm()">Cancel</button>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Remove critter?</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn-ghost" onclick="closeConfirm()">Keep</button>
+      <button class="btn-primary" id="confirmYes" style="margin-bottom:0">Remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── SUPABASE SETUP ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://pqmsjowwwewczalqqapm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SGFAt4u3UQKQSOKqWjCNVg_gnJH3ps_';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = error.message; return; }
+  await boot();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function showLogin() {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+async function boot() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'block';
+  document.getElementById('app').style.display = 'none';
+  await load();
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderAll();
+}
+
+async function initAuth() {
+  const { data } = await sb.auth.getSession();
+  if (data.session) { await boot(); } else { showLogin(); }
+}
+
+// ── ROW ⇄ CRITTER MAPPING ─────────────────────────────────────────────────────
+function rowToCritter(r) {
+  return {
+    id: r.id, name: r.name, emoji: r.emoji || '🐾', family: r.family || '',
+    species: r.species || '', age: r.age || '', status: r.status || 'Researching',
+    comfort: r.comfort || '', favorite: !!r.favorite, personality: r.personality || '',
+    facts: r.facts || [], quotes: r.quotes || [], wisdom: r.wisdom || [],
+    metaphors: r.metaphors || [], problems: r.problems || [], topics: r.topics || [],
+    editions: r.editions || [], related: r.related || [], symbiosis: r.symbiosis || [],
+    sources: r.sources || [], tryToday: r.try_today || '', notes: r.notes || '',
+    audioNote: r.audio_note || '', imageData: r.image_data || '', audioData: r.audio_data || '',
+  };
+}
+function critterToRow(c) {
+  return {
+    id: c.id, name: c.name, emoji: c.emoji, family: c.family, species: c.species || '',
+    age: c.age, status: c.status, comfort: c.comfort, favorite: !!c.favorite,
+    personality: c.personality, facts: c.facts || [], quotes: c.quotes || [],
+    wisdom: c.wisdom || [], metaphors: c.metaphors || [], problems: c.problems || [],
+    topics: c.topics || [], editions: c.editions || [], related: c.related || [],
+    symbiosis: c.symbiosis || [], sources: c.sources || [], try_today: c.tryToday || '',
+    notes: c.notes || '', audio_note: c.audioNote || '', image_data: c.imageData || '',
+    audio_data: c.audioData || '',
+  };
+}
+
+// ── REMOTE SYNC HELPERS ────────────────────────────────────────────────────────
+async function upsertCritterRemote(c) {
+  const { error } = await sb.from('critters').upsert(critterToRow(c));
+  if (error) showToast('⚠️ Sync failed: ' + error.message);
+}
+async function deleteCritterRemote(id) {
+  const { error } = await sb.from('critters').delete().eq('id', id);
+  if (error) showToast('⚠️ Delete sync failed: ' + error.message);
+}
+async function bulkUpsertRemote(list) {
+  const { error } = await sb.from('critters').upsert(list.map(critterToRow));
+  if (error) showToast('⚠️ Sync failed: ' + error.message);
+}
+
+const STORAGE_KEY = 'cca-vault-v2';
+const PRESET_TOPICS = ['Resilience','Boundaries','Forward momentum','Rest','Self-authority','Quiet power','Doubt','Identity','Freedom','Connection','Growth','Clarity','Trust','Courage','Playfulness','Patience','Perspective','Community','Change','Instinct'];
+const ANIMAL_FAMILIES = ['Mammal','Bird','Reptile','Amphibian','Insect','Fish','Arachnid','Crustacean','Marsupial','Rodent','Primate','Other'];
+const AGE_LEVELS = ['All Ages','Young Adult','Mature'];
+const STATUSES = ['Researching','Draft','Complete'];
+
+let critters = [];
+let expandedId = null;
+let currentTab = 'all';
+let filterFamily = '';
+let filterTopic = '';
+let filterAge = '';
+let filterComfort = '';
+let formLists = {};
+let formTopics = [];
+let formFav = false;
+let pendingDeleteId = null;
+
+async function load() {
+  const { data, error } = await sb.from('critters').select('*').order('name');
+  if (error) { showToast('⚠️ Could not load: ' + error.message); critters = []; return; }
+  if (data && data.length) {
+    critters = data.map(rowToCritter);
+    return;
+  }
+  // Table is empty (first run) — seed it with the starter companions, then push to Supabase
+  critters = getDefaultCritters();
+  await bulkUpsertRemote(critters);
+}
+
+function save() { /* no-op: persistence now happens per-action via Supabase (see upsertCritterRemote / deleteCritterRemote) */ }
+
+function getDefaultCritters() {
+  return [
+    {id:'claude-kangaroo',name:'Claude the Kangaroo',emoji:'🦘',family:'🐾 Creature Companion',species:'Marsupial',age:'All Ages',status:'Complete',comfort:'🌿 Growing',favorite:true,personality:'Dropkicks through doubt. Guardian of boundaries. Knows when to kick & when to cuddle.',facts:['Kangaroos cannot walk backwards — they only move forward.','A group of kangaroos is called a mob.'],quotes:['You are the compass. Not the clock.'],wisdom:['Bounce back harder than you fell.'],metaphors:['The pouch is for protection not permanent hiding. At some point you have to leap.'],problems:['Doubt and second-guessing','Boundary violations','Losing direction'],topics:['Resilience','Boundaries','Forward momentum'],editions:[],related:['Terry the Bomber'],symbiosis:['Terry clears the air — Claude leaps forward'],sources:[],tryToday:'Ask yourself: Am I staying here because I am safe... or because I am afraid to leap?',notes:'Core sidekick. Truth-delivering pouch-protecting partner.',audioNote:'',imageData:'',audioData:''},
+    {id:'kitty-cat',name:'Kitty the Cat',emoji:'🐱',family:'🐾 Creature Companion',species:'Mammal',age:'All Ages',status:'Complete',comfort:'🌱 Beginner',favorite:true,personality:'Supervisor of all things. Soft on the outside non-negotiable on the inside.',facts:['Cats sleep 12-16 hours a day — rest is not laziness it is strategy.'],quotes:[],wisdom:[],metaphors:['The cat does not apologise for taking up space. Neither should you.'],problems:['Over-explaining yourself','Guilt around saying no'],topics:['Self-authority','Rest','Quiet power'],editions:[],related:[],symbiosis:[],sources:[],tryToday:'Say No thank you. | Do not explain. | Let the silence exist.',notes:'Cat mom energy. Real-life Kitty.',audioNote:'',imageData:'',audioData:''},
+    {id:'terry-bomber',name:'Terry the Bomber',emoji:'🦨',family:'🐾 Creature Companion',species:'Mammal',age:'All Ages',status:'Draft',comfort:'🌳 Deep Thinking',favorite:true,personality:'Explosively effective. Clears the air so something new can grow.',facts:['Skunks only spray as a last resort — they give multiple warnings first.','The smell of a skunk can be detected up to a mile away.'],quotes:[],wisdom:['Sometimes the most powerful move is the one that clears everything out.'],metaphors:['You do not have to be mean to be unmistakable. Your presence alone changes the room.'],problems:['Stagnation','Fear of disruption','Holding onto what no longer serves'],topics:['Courage','Freedom','Growth'],editions:[],related:['Claude the Kangaroo'],symbiosis:['Terry clears the path — Claude leaps forward'],sources:[],tryToday:'Let your presence be enough.',notes:'Terry the skunk. The stink that changes the room.',audioNote:'',imageData:'',audioData:''},
+    {id:'beaver',name:'Beaver',emoji:'🦫',family:'🐾 Creature Companion',species:'North American Beaver',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:true,personality:'Builds with purpose. Never stops. Every dam is better than the last.',facts:[],quotes:["Guess I'd better start building."],wisdom:["The river keeps flowing. The Beaver doesn't complain that the river is inconvenient."],metaphors:["Don't curse the current. Learn to build with it.","A changing river isn't an obstacle — it's where builders learn to adapt."],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'Start building. Do not wait for perfect conditions. The river is already moving.',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'compass',name:'Compass',emoji:'🧭',family:'🧭 Tool Companion',species:'Navigation Tool',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'Points the way when everything feels uncertain.',facts:[],quotes:['Find your bearings.'],wisdom:[],metaphors:["A compass doesn't move — it simply tells the truth about where you are."],problems:['Feeling lost','Lack of direction','Overwhelm'],topics:['Clarity','Direction','Trust'],editions:[],related:['Flashlight'],symbiosis:[],sources:[],tryToday:'Find one thing that feels true right now. Start there.',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'flashlight',name:'Flashlight',emoji:'🔦',family:'🧭 Tool Companion',species:'Illumination Tool',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'Lights the path you are already walking.',facts:[],quotes:["You don't need to see the whole road. Just the next step."],wisdom:[],metaphors:["The flashlight doesn't judge the darkness. It simply shows what's there."],problems:['Fear of the unknown','Inability to see ahead','Paralysis'],topics:['Courage','Clarity','Forward momentum'],editions:[],related:['Compass'],symbiosis:[],sources:[],tryToday:"Shine a light on one thing you've been avoiding looking at.",notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'sloth',name:'Sloth',emoji:'🦥',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'professor-strigi',name:'Professor Strigi',emoji:'🦉',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌳 Deep Thinking',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'unicorn',name:'Unicorn',emoji:'🦄',family:'✨ Symbol Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'giraffe',name:'Giraffe',emoji:'🦒',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'camel',name:'Camel',emoji:'🐫',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'horse',name:'Horse',emoji:'🐴',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'turtle',name:'Turtle',emoji:'🐢',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'rabbit',name:'Rabbit',emoji:'🐰',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'koala',name:'Koala',emoji:'🐨',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'elephant',name:'Elephant',emoji:'🐘',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌳 Deep Thinking',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'otter',name:'Otter',emoji:'🦦',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'monkey',name:'Monkey',emoji:'🐒',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'stabby-rabbit',name:'Stabby Rabbit (Porcupine)',emoji:'🦔',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'trash-panda',name:'Trash Panda (Raccoon)',emoji:'🦝',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌿 Growing',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+    {id:'alpaca',name:'Alpaca',emoji:'🦙',family:'🐾 Creature Companion',species:'',age:'All Ages',status:'Draft',comfort:'🌱 Beginner',favorite:false,personality:'',facts:[],quotes:[],wisdom:[],metaphors:[],problems:[],topics:[],editions:[],related:[],symbiosis:[],sources:[],tryToday:'',notes:'',audioNote:'',imageData:'',audioData:''},
+  ];
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+// ── FILTERS & TABS ──────────────────────────────────────────────────────────
+function setTab(t) {
+  currentTab = t;
+  ['all','favs','draft','complete'].forEach(id => {
+    document.getElementById('tab-'+id).classList.toggle('active', id === t);
+  });
+  renderAll();
+}
+
+function getFiltered() {
+  const q = (document.getElementById('searchInput')?.value||'').toLowerCase().trim();
+  return critters.filter(c => {
+    if (currentTab === 'favs' && !c.favorite) return false;
+    if (currentTab === 'draft' && c.status === 'Complete') return false;
+    if (currentTab === 'complete' && c.status !== 'Complete') return false;
+    if (filterFamily && c.family !== filterFamily) return false;
+    if (filterTopic && !c.topics.includes(filterTopic)) return false;
+    if (filterAge && c.age !== filterAge) return false;
+    if (filterComfort && c.comfort !== filterComfort) return false;
+    if (!q) return true;
+    return [c.name,c.personality,c.notes,c.audioNote,
+      ...c.facts,...c.quotes,...c.wisdom,...c.metaphors,...c.problems,...c.topics,
+      ...c.editions,...c.related,...c.symbiosis,...c.sources
+    ].some(s => s && s.toLowerCase().includes(q));
+  });
+}
+
+function renderAll() {
+  renderFilterChips();
+  renderStats();
+  renderCards();
+}
+
+function renderFilterChips() {
+  // Family
+  const fam = document.getElementById('filterFamily');
+  fam.innerHTML = '<span class="filter-label">Companion Type:</span>';
+  const famAll = mkChip('All', !filterFamily, () => { filterFamily=''; renderAll(); });
+  fam.appendChild(famAll);
+  ['🐾 Creature Companion','🧭 Tool Companion','🌿 Nature Companion','✨ Symbol Companion'].forEach(f => {
+    fam.appendChild(mkChip(f, filterFamily===f, () => { filterFamily = filterFamily===f?'':f; renderAll(); }));
+  });
+
+  // Topic
+  const top = document.getElementById('filterTopic');
+  top.innerHTML = '<span class="filter-label">Topic:</span>';
+  top.appendChild(mkChip('All', !filterTopic, () => { filterTopic=''; renderAll(); }));
+  [...new Set(critters.flatMap(c=>c.topics))].sort().forEach(t => {
+    top.appendChild(mkChip(t, filterTopic===t, () => { filterTopic = filterTopic===t?'':t; renderAll(); }));
+  });
+
+  // Age
+  const age = document.getElementById('filterAge');
+  age.innerHTML = '<span class="filter-label">Age:</span>';
+  age.appendChild(mkChip('All', !filterAge, () => { filterAge=''; renderAll(); }));
+  AGE_LEVELS.forEach(a => {
+    age.appendChild(mkChip(a, filterAge===a, () => { filterAge = filterAge===a?'':a; renderAll(); }));
+  });
+
+  // Journey Stage
+  const comf = document.getElementById('filterComfort');
+  comf.innerHTML = '<span class="filter-label">Journey Stage:</span>';
+  comf.appendChild(mkChip('All', !filterComfort, () => { filterComfort=''; renderAll(); }));
+  ['🌱 Beginner','🌿 Growing','🌳 Deep Thinking'].forEach(lv => {
+    comf.appendChild(mkChip(lv, filterComfort===lv, () => { filterComfort = filterComfort===lv?'':lv; renderAll(); }));
+  });
+}
+
+function mkChip(label, active, onclick) {
+  const b = document.createElement('button');
+  b.className = 'chip' + (active?' active':'');
+  b.textContent = label;
+  b.onclick = onclick;
+  return b;
+}
+
+function renderStats() {
+  const f = getFiltered();
+  const bar = document.getElementById('statsBar');
+  const tQ = critters.reduce((n,c)=>n+c.quotes.length,0);
+  const tW = critters.reduce((n,c)=>n+c.wisdom.length,0);
+  const tF = critters.reduce((n,c)=>n+c.facts.length,0);
+  let h = `<span>🐾 ${critters.length} critters</span><span>💬 ${tQ} quotes</span><span>✨ ${tW} lessons</span><span>🔬 ${tF} facts</span>`;
+  if (f.length !== critters.length) h += `<span class="stats-highlight">↳ ${f.length} shown</span>`;
+  bar.innerHTML = h;
+}
+
+function renderCards() {
+  const list = document.getElementById('cardList');
+  const filtered = getFiltered();
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🐾</div><div style="color:#555;font-size:14px">No critters match.<br>Try a different search or add a new one.</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => cardHTML(c)).join('');
+}
+
+function statusClass(s) {
+  return s==='Complete'?'status-complete':s==='Draft'?'status-draft':'status-researching';
+}
+function comfortClass(c) {
+  return c==='🌱 Beginner'?'comfort-beginner':c==='🌿 Growing'?'comfort-growing':'comfort-deep';
+}
+function ageClass(a) {
+  return a==='Mature'?'age-mature':a==='Young Adult'?'age-ya':'age-all';
+}
+
+function cardHTML(c) {
+  const isOpen = expandedId === c.id;
+  const thumbHTML = c.imageData ? `<img class="card-img-thumb" src="${c.imageData}" alt="">` : '';
+  const metaHTML = `
+    <div class="card-meta">
+      ${c.status?`<span class="status-badge ${statusClass(c.status)}">${c.status}</span>`:''}
+      ${c.comfort?`<span class="status-badge ${comfortClass(c.comfort)}">${c.comfort}</span>`:''}
+      ${c.family?`<span class="family-badge">${c.family}</span>`:''}
+      ${c.age?`<span class="age-badge ${ageClass(c.age)}">${c.age}</span>`:''}
+      ${c.favorite?'<span style="color:#ffaa00;font-size:12px">⭐</span>':''}
+    </div>`;
+
+  let body = '';
+  if (isOpen) {
+    body = '<div class="card-body">';
+    if (c.imageData) body += `<div class="section"><img src="${c.imageData}" class="critter-image" alt="${esc(c.name)}"></div>`;
+    if (c.personality) body += `<div class="section"><div class="section-label">Personality & Role</div><p class="body-text">${esc(c.personality)}</p></div>`;
+    if (c.facts?.length) body += `<div class="section"><div class="section-label">🔬 Natural Facts</div>${c.facts.map(f=>`<div class="wisdom-item" style="border-color:#4488ff;color:#aac4ff">🔬 ${esc(f)}</div>`).join('')}</div>`;
+    if (c.quotes.length) body += `<div class="section"><div class="section-label">Quotes</div>${c.quotes.map(q=>`<div class="quote-block">"${esc(q)}"</div>`).join('')}</div>`;
+    if (c.wisdom.length) body += `<div class="section"><div class="section-label">Wisdom / Lessons</div>${c.wisdom.map(w=>`<div class="wisdom-item">🐾 ${esc(w)}</div>`).join('')}</div>`;
+    if (c.metaphors?.length) body += `<div class="section"><div class="section-label">🦋 Metaphorical Wisdom</div>${c.metaphors.map(m=>`<div class="wisdom-item" style="border-color:#cc88ff;color:#cc88ff">🦋 ${esc(m)}</div>`).join('')}</div>`;
+    if (c.problems.length) body += `<div class="section"><div class="section-label">Problems Solved</div><div class="tags">${c.problems.map(p=>`<span class="tag">${esc(p)}</span>`).join('')}</div></div>`;
+    if (c.topics.length) body += `<div class="section"><div class="section-label">Topics</div><div class="tags">${c.topics.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div>`;
+    if (c.editions?.length) body += `<div class="section"><div class="section-label">Editions</div><div class="tags">${c.editions.map(e=>`<span class="tag">${esc(e)}</span>`).join('')}</div></div>`;
+    if (c.related?.length) body += `<div class="section"><div class="section-label">Related Critters</div><div class="tags">${c.related.map(r=>`<span class="tag">🐾 ${esc(r)}</span>`).join('')}</div></div>`;
+    if (c.symbiosis?.length) body += `<div class="section"><div class="section-label">Symbiotic Relationships</div>${c.symbiosis.map(s=>`<div class="meta-item">🔗 ${esc(s)}</div>`).join('')}</div>`;
+    if (c.audioData) body += `<div class="section"><div class="section-label">Audio</div><audio controls class="audio-player"><source src="${c.audioData}">Your browser does not support audio.</audio></div>`;
+    if (c.audioNote) body += `<div class="section"><div class="section-label">Audio Note</div><p class="body-text">${esc(c.audioNote)}</p></div>`;
+    if (c.sources?.length) body += `<div class="section"><div class="section-label">References</div>${c.sources.map(s=>`<div class="source-item">📚 ${esc(s)}</div>`).join('')}</div>`;
+    if (c.tryToday) body += `<div class="try-today-box"><div class="try-today-label">🐾 Try This Today</div><div class="try-today-text">${esc(c.tryToday)}</div></div>`;
+    if (c.notes) body += `<div class="section"><div class="section-label">Planning Notes</div><p class="notes-text">${esc(c.notes)}</p></div>`;
+    body += '</div>';
+  }
+
+  return `<div class="card${isOpen?' open':''}${c.favorite?' favorite':''}" id="card-${c.id}">
+    <div class="card-header" onclick="toggleCard('${c.id}')">
+      <div class="card-left">
+        <span class="card-emoji">${c.emoji}</span>
+        ${thumbHTML}
+        <div class="card-info">
+          <div class="card-name">${esc(c.name)}</div>
+          ${metaHTML}
+          ${!isOpen?`<div class="card-preview">${c.topics.slice(0,2).join(' · ')}</div>`:''}
+        </div>
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn" onclick="openProfile('${c.id}')" title="View Profile">👁️</button>
+        <button class="icon-btn" onclick="toggleFavDirect('${c.id}')" title="Favourite">${c.favorite?'⭐':'☆'}</button>
+        <button class="icon-btn" onclick="openForm('${c.id}')" title="Edit">✏️</button>
+        <button class="icon-btn" onclick="confirmDelete('${c.id}')" title="Delete">🗑️</button>
+      </div>
+    </div>${body}</div>`;
+}
+
+function toggleCard(id) { expandedId = expandedId===id?null:id; renderCards(); }
+function toggleFavDirect(id) {
+  const c = critters.find(x=>x.id===id);
+  if (c) { c.favorite=!c.favorite; renderCards(); upsertCritterRemote(c); }
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── FORM ─────────────────────────────────────────────────────────────────────
+function openForm(id) {
+  const c = id ? critters.find(x=>x.id===id) : null;
+  document.getElementById('editId').value = id||'';
+  document.getElementById('formTitle').textContent = id?`✏️ Edit — ${c.name}`:'✨ New Critter';
+  document.getElementById('fEmoji').value = c?c.emoji:'🐾';
+  document.getElementById('fName').value = c?c.name:'';
+  document.getElementById('fFamily').value = c?c.family||'':'';
+  document.getElementById('fAge').value = c?c.age||'':'';
+  document.getElementById('fStatus').value = c?c.status||'Researching':'Researching';
+  document.getElementById('fComfort').value = c?c.comfort||'':'';
+  document.getElementById('fPersonality').value = c?c.personality:'';
+  document.getElementById('fEditions').value = c?c.editions.join(', '):'';
+  document.getElementById('fNotes').value = c?c.notes:'';
+  document.getElementById('fAudioNote').value = c?c.audioNote||'':'';
+  document.getElementById('fTryToday').value = c?c.tryToday||'':'';
+  document.getElementById('fImageData').value = c?c.imageData||'':'';
+  document.getElementById('fAudioData').value = c?c.audioData||'':'';
+  formFav = c?c.favorite:false;
+  document.getElementById('fFavBtn').classList.toggle('active', formFav);
+
+  // Image preview
+  const prev = document.getElementById('imagePreview');
+  if (c && c.imageData) { prev.src=c.imageData; prev.style.display='block'; } else { prev.style.display='none'; }
+
+  // Audio preview
+  const aprev = document.getElementById('audioPreview');
+  if (c && c.audioData) { aprev.innerHTML=`<audio controls class="audio-player"><source src="${c.audioData}"></audio>`; } else { aprev.innerHTML=''; }
+
+  formLists = {
+    facts: c?[...c.facts||[]]:[],
+    quotes: c?[...c.quotes]:[],
+    wisdom: c?[...c.wisdom]:[],
+    metaphors: c?[...c.metaphors||[]]:[],
+    problems: c?[...c.problems]:[],
+    related: c?[...c.related||[]]:[],
+    symbiosis: c?[...c.symbiosis]:[],
+    sources: c?[...c.sources||[]]:[],
+  };
+  formTopics = c?[...c.topics]:[];
+  renderFormLists();
+  renderTopicGrid();
+  document.getElementById('formModal').classList.add('open');
+}
+
+function closeForm() { document.getElementById('formModal').classList.remove('open'); }
+
+function toggleFav() {
+  formFav = !formFav;
+  document.getElementById('fFavBtn').classList.toggle('active', formFav);
+}
+
+function renderFormLists() {
+  Object.keys(formLists).forEach(key => {
+    const el = document.getElementById(key+'List');
+    if (!el) return;
+    el.innerHTML = formLists[key].map((item,i) =>
+      `<div class="list-item"><span class="list-item-text">${esc(item)}</span><button class="list-item-del" onclick="removeListItem('${key}',${i})">×</button></div>`
+    ).join('');
+  });
+}
+
+function addListItem(key, inputId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim(); if (!val) return;
+  formLists[key].push(val); input.value=''; renderFormLists();
+}
+function removeListItem(key, i) { formLists[key].splice(i,1); renderFormLists(); }
+
+function renderTopicGrid() {
+  const all = [...new Set([...PRESET_TOPICS,...formTopics])];
+  document.getElementById('topicGrid').innerHTML = all.map(t =>
+    `<button class="chip${formTopics.includes(t)?' active':''}" onclick="toggleFormTopic('${esc(t)}')">${esc(t)}</button>`
+  ).join('');
+}
+function toggleFormTopic(t) {
+  if (formTopics.includes(t)) formTopics=formTopics.filter(x=>x!==t); else formTopics.push(t);
+  renderTopicGrid();
+}
+function addCustomTopic() {
+  const input=document.getElementById('fTopicCustom');
+  const val=input.value.trim(); if(!val||formTopics.includes(val)){input.value='';return;}
+  formTopics.push(val); input.value=''; renderTopicGrid();
+}
+
+function handleImageUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('fImageData').value = ev.target.result;
+    const prev = document.getElementById('imagePreview');
+    prev.src = ev.target.result; prev.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleAudioUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('fAudioData').value = ev.target.result;
+    document.getElementById('audioPreview').innerHTML = `<audio controls class="audio-player"><source src="${ev.target.result}"></audio>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveCritter() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { showToast('Add a name first 🐾'); return; }
+  const editId = document.getElementById('editId').value;
+  const critter = {
+    id: editId||genId(), name,
+    emoji: document.getElementById('fEmoji').value||'🐾',
+    family: document.getElementById('fFamily').value,
+    age: document.getElementById('fAge').value,
+    status: document.getElementById('fStatus').value,
+    comfort: document.getElementById('fComfort').value,
+    favorite: formFav,
+    personality: document.getElementById('fPersonality').value.trim(),
+    facts: [...formLists.facts],
+    quotes: [...formLists.quotes],
+    wisdom: [...formLists.wisdom],
+    metaphors: [...formLists.metaphors],
+    problems: [...formLists.problems],
+    topics: [...formTopics],
+    editions: document.getElementById('fEditions').value.split(',').map(s=>s.trim()).filter(Boolean),
+    related: [...formLists.related],
+    symbiosis: [...formLists.symbiosis],
+    sources: [...formLists.sources],
+    notes: document.getElementById('fNotes').value.trim(),
+    tryToday: document.getElementById('fTryToday').value.trim(),
+    imageData: document.getElementById('fImageData').value,
+    audioData: document.getElementById('fAudioData').value,
+    audioNote: document.getElementById('fAudioNote').value.trim(),
+  };
+  if (editId) { const idx=critters.findIndex(c=>c.id===editId); if(idx>-1) critters[idx]=critter; }
+  else critters.push(critter);
+  closeForm(); renderAll();
+  upsertCritterRemote(critter);
+  showToast(editId?'Critter updated ✓':'Critter added 🐾');
+}
+
+// ── DELETE ───────────────────────────────────────────────────────────────────
+function confirmDelete(id) {
+  const c=critters.find(x=>x.id===id); if(!c) return;
+  pendingDeleteId=id;
+  document.getElementById('confirmMsg').textContent=`Remove ${c.emoji} ${c.name}? This can't be undone.`;
+  document.getElementById('confirmOverlay').classList.add('open');
+  document.getElementById('confirmYes').onclick=doDelete;
+}
+function closeConfirm() { pendingDeleteId=null; document.getElementById('confirmOverlay').classList.remove('open'); }
+function doDelete() {
+  if(!pendingDeleteId) return;
+  const idToDelete = pendingDeleteId;
+  critters=critters.filter(c=>c.id!==idToDelete);
+  if(expandedId===idToDelete) expandedId=null;
+  closeConfirm(); renderAll(); showToast('Critter removed');
+  deleteCritterRemote(idToDelete);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── CSV COLUMNS ───────────────────────────────────────────────────────────────
+const CSV_COLS = [
+  'name','emoji','family','species','age','status','comfort','favorite',
+  'personality','facts','quotes','wisdom','metaphors','problems',
+  'topics','editions','related','symbiosis','sources','tryToday','notes','audioNote'
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function arrToCell(arr) { return (arr||[]).join(' | '); }
+function cellToArr(str) { return str ? str.split('|').map(s=>s.trim()).filter(Boolean) : []; }
+
+function csvEscape(val) {
+  const s = String(val||'');
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+
+function parseCSVLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i=0; i<line.length; i++) {
+    const ch = line[i];
+    if (ch==='"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+    else if (ch===',' && !inQ) { result.push(cur); cur=''; }
+    else cur+=ch;
+  }
+  result.push(cur);
+  return result;
+}
+
+// ── PROFILE VIEW ──────────────────────────────────────────────────────────────
+function openProfile(id) {
+  const c = critters.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('profileContent').innerHTML = buildProfile(c);
+  document.getElementById('profileOverlay').classList.add('open');
+  document.getElementById('profileOverlay').scrollTop = 0;
+}
+
+function closeProfile() {
+  document.getElementById('profileOverlay').classList.remove('open');
+}
+
+function switchProfileTab(tab) {
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.profile-section').forEach(s => s.classList.toggle('active', s.dataset.tab === tab));
+}
+
+function getFriends(c) {
+  return critters.filter(other => {
+    if (other.id === c.id) return false;
+    const sharedTopics = (c.topics||[]).filter(t => (other.topics||[]).includes(t));
+    const isRelated = (c.related||[]).some(r => other.name.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(other.name.toLowerCase()));
+    const isSymbiosis = (c.symbiosis||[]).some(s => s.toLowerCase().includes(other.name.toLowerCase()));
+    return sharedTopics.length >= 1 || isRelated || isSymbiosis;
+  }).slice(0, 6);
+}
+
+function getSharedReason(c, friend) {
+  const shared = (c.topics||[]).filter(t => (friend.topics||[]).includes(t));
+  if (shared.length) return shared.slice(0,2).join(' & ');
+  const rel = (c.related||[]).find(r => friend.name.toLowerCase().includes(r.toLowerCase()));
+  if (rel) return 'Related companion';
+  return 'Connected';
+}
+
+function getAlsoViewed(c, friends) {
+  const friendIds = friends.map(f => f.id);
+  return critters.filter(other => {
+    if (other.id === c.id || friendIds.includes(other.id)) return false;
+    const sharedProblems = (c.problems||[]).filter(p => (other.problems||[]).includes(p));
+    return sharedProblems.length >= 1;
+  }).slice(0, 5);
+}
+
+function buildProfile(c) {
+  const friends = getFriends(c);
+  const alsoViewed = getAlsoViewed(c, friends);
+
+  const heroImg = c.imageData
+    ? `<img class="profile-hero-img" src="${c.imageData}" alt="${esc(c.name)}">`
+    : `<div class="profile-hero-emoji">${c.emoji}</div>`;
+
+  const badges = [
+    c.status ? `<span class="status-badge ${statusClass(c.status)}">${c.status}</span>` : '',
+    c.comfort ? `<span class="status-badge ${comfortClass(c.comfort)}">${c.comfort}</span>` : '',
+    c.family ? `<span class="family-badge">${c.family}</span>` : '',
+    c.age ? `<span class="age-badge ${ageClass(c.age)}">${c.age}</span>` : '',
+    c.favorite ? '<span style="color:#ffaa00">⭐</span>' : '',
+  ].filter(Boolean).join('');
+
+  const storyTab = `<div class="profile-section active" data-tab="story">
+    <div class="profile-section-title">📖 Story</div>
+    ${c.personality ? `<p style="font-size:15px;color:#d0a0d0;line-height:1.7;margin-bottom:14px">${esc(c.personality)}</p>` : '<p style="color:#555;font-style:italic">No story added yet.</p>'}
+    ${(c.facts||[]).length ? `<div style="margin-top:14px"><div class="profile-section-title" style="font-size:11px">🔬 Natural Facts</div>${c.facts.map(f=>`<div class="profile-fact">🔬 ${esc(f)}</div>`).join('')}</div>` : ''}
+    ${(c.metaphors||[]).length ? `<div style="margin-top:14px"><div class="profile-section-title" style="font-size:11px">🦋 Metaphorical Wisdom</div>${c.metaphors.map(m=>`<div class="profile-metaphor">🦋 ${esc(m)}</div>`).join('')}</div>` : ''}
+  </div>`;
+
+  const lessonTab = `<div class="profile-section" data-tab="lesson">
+    <div class="profile-section-title">💡 Lesson</div>
+    ${(c.wisdom||[]).length ? c.wisdom.map(w=>`<div class="profile-wisdom">🐾 ${esc(w)}</div>`).join('') : '<p style="color:#555;font-style:italic">No lessons added yet.</p>'}
+    ${(c.problems||[]).length ? `<div style="margin-top:16px"><div class="profile-section-title" style="font-size:11px">🔍 Problems This Helps With</div><div>${c.problems.map(p=>`<span class="problem-pill">${esc(p)}</span>`).join('')}</div></div>` : ''}
+    ${(c.topics||[]).length ? `<div style="margin-top:16px"><div class="profile-section-title" style="font-size:11px">Topics</div><div class="tags">${c.topics.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div>` : ''}
+  </div>`;
+
+  const quotesTab = `<div class="profile-section" data-tab="quotes">
+    <div class="profile-section-title">💬 Quotes</div>
+    ${(c.quotes||[]).length ? c.quotes.map(q=>`<div class="profile-quote">"${esc(q)}"</div>`).join('') : '<p style="color:#555;font-style:italic">No quotes added yet.</p>'}
+  </div>`;
+
+  const comfortTab = `<div class="profile-section" data-tab="comfort">
+    <div class="profile-section-title">🐾 Try This Today</div>
+    ${c.tryToday ? `<div class="try-today-profile"><div class="try-today-profile-label">🐾 Try This Today</div><div class="try-today-profile-text">${esc(c.tryToday)}</div></div>` : '<p style="color:#555;font-style:italic">No action added yet.</p>'}
+    ${(c.symbiosis||[]).length ? `<div style="margin-top:16px"><div class="profile-section-title" style="font-size:11px">🔗 Symbiotic Relationships</div>${c.symbiosis.map(s=>`<div class="symbiosis-block">🔗 ${esc(s)}</div>`).join('')}</div>` : ''}
+    ${(c.sources||[]).length ? `<div style="margin-top:16px"><div class="profile-section-title" style="font-size:11px">📚 References</div>${c.sources.map(s=>`<div style="font-size:13px;color:#4488ff;margin-bottom:4px">📚 ${esc(s)}</div>`).join('')}</div>` : ''}
+    ${c.audioData ? `<div style="margin-top:10px"><audio controls class="audio-player"><source src="${c.audioData}"></audio></div>` : ''}
+  </div>`;
+
+  const friendCards = friends.length
+    ? `<div class="friend-grid">${friends.map(f=>`
+        <div class="friend-card" onclick="openProfile('${f.id}')">
+          <div class="friend-emoji">${f.emoji}</div>
+          <div class="friend-name">${esc(f.name.split(' ').slice(0,2).join(' '))}</div>
+          <div class="friend-why">${esc(getSharedReason(c,f))}</div>
+        </div>`).join('')}</div>`
+    : '<p style="color:#555;font-style:italic">No friends yet. Add shared topics or related companions to build the web.</p>';
+
+  const alsoCards = alsoViewed.length
+    ? `<div style="margin-top:20px"><div class="profile-section-title" style="font-size:11px">👁️ People Also Found Helpful</div>
+        <div class="also-viewed">${alsoViewed.map(a=>`
+          <div class="also-card" onclick="openProfile('${a.id}')">
+            <span class="also-emoji">${a.emoji}</span>
+            <span class="also-name">${esc(a.name.split(' ').slice(0,2).join(' '))}</span>
+          </div>`).join('')}</div></div>`
+    : '';
+
+  const friendsTab = `<div class="profile-section" data-tab="friends">
+    <div class="profile-section-title">🕸️ Friends & Connections</div>
+    ${friendCards}${alsoCards}
+  </div>`;
+
+  return `
+    <div class="profile-hero">
+      ${heroImg}
+      <div class="profile-hero-name">${c.emoji} ${esc(c.name)}</div>
+      ${c.personality ? `<div class="profile-hero-tagline">${esc(c.personality.split('.')[0])}.</div>` : ''}
+      <div class="profile-hero-badges">${badges}</div>
+    </div>
+    <div class="profile-tabs">
+      <div class="profile-tab active" data-tab="story" onclick="switchProfileTab('story')">📖 Story</div>
+      <div class="profile-tab" data-tab="lesson" onclick="switchProfileTab('lesson')">💡 Lesson</div>
+      <div class="profile-tab" data-tab="quotes" onclick="switchProfileTab('quotes')">💬 Quotes</div>
+      <div class="profile-tab" data-tab="comfort" onclick="switchProfileTab('comfort')">🐾 Action</div>
+      <div class="profile-tab" data-tab="friends" onclick="switchProfileTab('friends')">🕸️ Friends</div>
+    </div>
+    ${storyTab}${lessonTab}${quotesTab}${comfortTab}${friendsTab}
+    <div style="padding:16px 16px 40px">
+      <button class="btn-primary" onclick="closeProfile();openForm('${c.id}')">✏️ Edit This Companion</button>
+    </div>`;
+}
+
+// ── JSON BACKUP / RESTORE ─────────────────────────────────────────────────────
+function exportJSON() {
+  const date = new Date().toISOString().slice(0,10);
+  const blob = new Blob([JSON.stringify(critters, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`CritterVault-backup-${date}.json`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSON backup saved 📤');
+}
+
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const text = ev.target.result || ev.currentTarget.result;
+      const imported = JSON.parse(text);
+      if (!Array.isArray(imported)) throw new Error('Not an array');
+      critters = imported.map(c => ({ ...c, id: c.id || genId() }));
+      renderAll();
+      bulkUpsertRemote(critters);
+      showToast('✓ ' + imported.length + ' companions loaded!');
+    } catch(err) {
+      showToast('Import failed — ' + err.message);
+    }
+    e.target.value='';
+  };
+  reader.onerror = function() { showToast('Could not read file'); };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const date = new Date().toISOString().slice(0,10);
+  const rows = [CSV_COLS.join(',')];
+  critters.forEach(c => {
+    const row = [
+      c.name, c.emoji, c.family||'', c.species||'', c.age||'', c.status||'', c.comfort||'', c.favorite?'yes':'no',
+      c.personality||'',
+      arrToCell(c.facts), arrToCell(c.quotes), arrToCell(c.wisdom), arrToCell(c.metaphors),
+      arrToCell(c.problems), arrToCell(c.topics), arrToCell(c.editions),
+      arrToCell(c.related), arrToCell(c.symbiosis), arrToCell(c.sources),
+      c.tryToday||'', c.notes||'', c.audioNote||''
+    ].map(csvEscape);
+    rows.push(row.join(','));
+  });
+  const blob = new Blob([rows.join('\n')], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`CritterVault-${date}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exported 📊');
+}
+
+// ── CSV IMPORT ────────────────────────────────────────────────────────────────
+function importCSV(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const lines = ev.target.result.split('\n').filter(l=>l.trim());
+      const headers = parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());
+      let added=0; let updated=0;
+      for (let i=1; i<lines.length; i++) {
+        const vals = parseCSVLine(lines[i]);
+        const get = col => { const idx=headers.indexOf(col); return idx>-1?vals[idx]?.trim()||'':''; };
+        const name = get('name'); if (!name) continue;
+        const existing = critters.find(c=>c.name.toLowerCase()===name.toLowerCase());
+        const critter = {
+          id: existing?existing.id:genId(),
+          name, emoji: get('emoji')||'🐾',
+          family: get('family'), species: get('species'),
+          age: get('age'), status: get('status')||'Researching',
+          comfort: get('comfort'), favorite: get('favorite').toLowerCase()==='yes',
+          personality: get('personality'),
+          facts: cellToArr(get('facts')),
+          quotes: cellToArr(get('quotes')),
+          wisdom: cellToArr(get('wisdom')),
+          metaphors: cellToArr(get('metaphors')),
+          problems: cellToArr(get('problems')),
+          topics: cellToArr(get('topics')),
+          editions: cellToArr(get('editions')),
+          related: cellToArr(get('related')),
+          symbiosis: cellToArr(get('symbiosis')),
+          sources: cellToArr(get('sources')),
+          tryToday: get('trytoday'),
+          notes: get('notes'),
+          audioNote: get('audionote'),
+          imageData: existing?existing.imageData||'':'',
+          audioData: existing?existing.audioData||'':'',
+        };
+        if (existing) { const idx=critters.findIndex(c=>c.id===existing.id); critters[idx]=critter; updated++; }
+        else { critters.push(critter); added++; }
+      }
+      renderAll();
+      bulkUpsertRemote(critters);
+      showToast(`CSV imported! ${added} added, ${updated} updated ✓`);
+    } catch(err) { showToast('CSV import failed — check file format'); }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ── BLANK TEMPLATE ────────────────────────────────────────────────────────────
+function downloadTemplate() {
+  const instructions = [
+    '# CRITTER VAULT — CSV TEMPLATE',
+    '# Fill in one critter per row.',
+    '# For fields with multiple items (facts, quotes, wisdom etc.) separate each item with a pipe: |',
+    '# Example for facts: Kangaroos cannot walk backwards | A group is called a mob',
+    '# Companion Type options: 🐾 Creature Companion | 🧭 Tool Companion | 🌿 Nature Companion | ✨ Symbol Companion',
+    '# Age options: All Ages | Young Adult | Mature',
+    '# Status options: Researching | Draft | Complete',
+    '# Comfort options: 🌱 Beginner | 🌿 Growing | 🌳 Deep Thinking',
+    '# Favorite: yes or no',
+    '#',
+  ].join('\n');
+  const header = CSV_COLS.join(',');
+  const example = [
+    'Claude the Kangaroo','🦘','🐾 Creature Companion','Marsupial','All Ages','Complete','🌿 Growing','yes',
+    'Dropkicks through doubt. Guardian of boundaries.',
+    'Kangaroos cannot walk backwards | A group is called a mob',
+    'You are the compass. Not the clock.',
+    'Bounce back harder than you fell.',
+    'The pouch is for protection not permanent hiding.',
+    'Doubt and second-guessing | Boundary violations',
+    'Resilience | Boundaries | Forward momentum',
+    '','Terry the Bomber','Terry clears the air — Claude leaps forward',
+    '','Ask yourself: Am I staying here because I am safe or because I am afraid to leap?',
+    'Core sidekick.',''
+  ].map(csvEscape).join(',');
+  const content = instructions + '\n' + header + '\n' + example + '\n';
+  const blob = new Blob([content], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='CritterVault-TEMPLATE.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Template downloaded 📋');
+}
+
+initAuth();
+</script>
+</body>
+</html>
