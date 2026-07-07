@@ -227,15 +227,15 @@ function createWorkshop(config) {
     renderToken++;
     const el = ensureContainer();
     el.innerHTML = `
-      <div class="modal-overlay" id="${containerId}-overlay" style="position:fixed;inset:0;background:rgba(20,10,15,0.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999;">
-        <div class="modal" style="background:#fff;border-radius:14px;max-width:620px;width:100%;max-height:88vh;overflow-y:auto;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,0.3);box-sizing:border-box;">
-          <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:700;margin-bottom:14px;">
+      <div class="modal-overlay" id="${containerId}-overlay" style="position:fixed;inset:0;display:none;padding:20px;z-index:9999;">
+        <div class="modal" style="max-width:620px;width:100%;max-height:88vh;overflow-y:auto;box-sizing:border-box;">
+          <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
             <span>${editingId ? '✏️ Edit — ' + esc(state[idSourceField]) : '✨ New ' + esc(title)}</span>
-            <button type="button" class="modal-close" id="${containerId}-close" style="background:none;border:none;font-size:22px;cursor:pointer;line-height:1;">×</button>
+            <button type="button" class="modal-close" id="${containerId}-close" style="cursor:pointer;line-height:1;">×</button>
           </div>
           ${fields.map(fieldHTML).join('')}
-          <button type="button" class="btn-primary" id="${containerId}-save" style="width:100%;background:#333;color:#fff;font-weight:700;font-size:15px;border:none;border-radius:10px;padding:12px;cursor:pointer;margin-bottom:8px;">Save</button>
-          <button type="button" class="btn-ghost" id="${containerId}-cancel" style="width:100%;background:transparent;border:1px solid #999;border-radius:10px;padding:10px;cursor:pointer;">Cancel</button>
+          <button type="button" class="btn-primary" id="${containerId}-save" style="cursor:pointer;">Save</button>
+          <button type="button" class="btn-ghost" id="${containerId}-cancel" style="cursor:pointer;">Cancel</button>
         </div>
       </div>`;
     wireEvents();
