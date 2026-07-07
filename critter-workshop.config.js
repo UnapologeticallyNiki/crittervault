@@ -64,8 +64,8 @@ const critterWorkshopConfig = {
     if (expandedId === id) expandedId = null;
     renderAll();
   },
-
-  onToast: showToast,
+onToast: () => {}, // Workshop's own built-in toast now handles this
+  
 };
 
 const CritterWorkshop = createWorkshop(critterWorkshopConfig);
