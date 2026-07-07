@@ -819,8 +819,9 @@ function buildProfile(c) {
     </div>
     ${storyTab}${lessonTab}${quotesTab}${comfortTab}${friendsTab}
     <div style="padding:16px 16px 40px">
-onclick="closeProfile();CritterWorkshop.open(critters.find(x=>x.id==='${c.id}'))"    </div>`;
-}
+<div style="padding:16px 16px 40px">
+      <button class="btn-primary" onclick="closeProfile();CritterWorkshop.open(critters.find(x=>x.id==='${c.id}'))">✏️ Edit This Companion</button>
+    </div>`;}
 
 // ── JSON BACKUP / RESTORE ─────────────────────────────────────────────────────
 function exportJSON() {
