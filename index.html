@@ -296,7 +296,7 @@
   <div class="stats-bar" id="statsBar"></div>
   <div id="cardList"></div>
   <div class="spacer"></div>
-  <button class="fab" onclick="openForm(null)">+</button>
+  <button class="fab" onclick="CritterWorkshop.open(null)">+</button>
 </div>
 
 <!-- PROFILE VIEW -->
@@ -308,169 +308,7 @@
   <div id="profileContent"></div>
 </div>
 
-<!-- FORM MODAL -->
-<div class="modal-overlay" id="formModal">
-  <div class="modal">
-    <div class="modal-title">
-      <span id="formTitle">✨ New Critter</span>
-      <button class="modal-close" onclick="closeForm()">×</button>
-    </div>
-    <input type="hidden" id="editId">
 
-    <!-- Basic Info -->
-    <div class="emoji-name-row form-row">
-      <div><label class="form-label">Emoji</label><input class="form-input emoji-input" id="fEmoji" maxlength="4" value="🐾"></div>
-      <div style="flex:1"><label class="form-label">Companion Name</label><input class="form-input" id="fName" placeholder="e.g. Claude the Kangaroo"></div>
-    </div>
-
-    <div class="two-col form-row">
-      <div>
-        <label class="form-label">Companion Type</label>
-        <select class="form-select" id="fFamily">
-          <option value="">Select…</option>
-          <option>🐾 Creature Companion</option>
-          <option>🧭 Tool Companion</option>
-          <option>🌿 Nature Companion</option>
-          <option>✨ Symbol Companion</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Species / Kind (optional)</label>
-        <input class="form-input" id="fSpecies" placeholder="e.g. Marsupial, Compass…">
-      </div>
-    </div>
-
-    <div class="two-col form-row">
-      <div>
-        <label class="form-label">Age Level</label>
-        <select class="form-select" id="fAge">
-          <option value="">Select…</option>
-          <option>All Ages</option><option>Young Adult</option><option>Mature</option>
-        </select>
-      </div>
-    </div>
-    <div class="two-col form-row">
-      <div>
-        <label class="form-label">Status</label>
-        <select class="form-select" id="fStatus">
-          <option value="Researching">Researching</option>
-          <option value="Draft">Draft</option>
-          <option value="Complete">Complete</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Comfort Level</label>
-        <select class="form-select" id="fComfort">
-          <option value="">Select…</option>
-          <option>🌱 Beginner</option>
-          <option>🌿 Growing</option>
-          <option>🌳 Deep Thinking</option>
-        </select>
-      </div>
-    </div>
-    <div style="margin-bottom:13px;display:flex;align-items:center">
-      <button class="star-toggle" id="fFavBtn" onclick="toggleFav()">⭐ Favourite</button>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Personality & Role</label>
-      <textarea class="form-textarea" id="fPersonality" placeholder="Who is this critter? What do they do?"></textarea>
-    </div>
-
-    <hr class="form-divider">
-
-    <div class="form-row">
-      <label class="form-label">Natural Facts (real animal behaviour)</label>
-      <div class="list-add-row"><input class="form-input" id="fFactDraft" placeholder="e.g. Kangaroos can't walk backwards…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('facts','fFactDraft')}"><button class="btn-small" onclick="addListItem('facts','fFactDraft')">Add</button></div>
-      <div id="factsList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Quotes</label>
-      <div class="list-add-row"><input class="form-input" id="fQuoteDraft" placeholder="Add a quote…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('quotes','fQuoteDraft')}"><button class="btn-small" onclick="addListItem('quotes','fQuoteDraft')">Add</button></div>
-      <div id="quotesList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Wisdom / Lessons (general)</label>
-      <div class="list-add-row"><input class="form-input" id="fWisdomDraft" placeholder="Add a wisdom lesson…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('wisdom','fWisdomDraft')}"><button class="btn-small" onclick="addListItem('wisdom','fWisdomDraft')">Add</button></div>
-      <div id="wisdomList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Metaphorical Wisdom</label>
-      <div class="list-add-row"><input class="form-input" id="fMetaDraft" placeholder="Deeper metaphorical meaning…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('metaphors','fMetaDraft')}"><button class="btn-small" onclick="addListItem('metaphors','fMetaDraft')">Add</button></div>
-      <div id="metaphorsList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Problems This Critter Solves</label>
-      <div class="list-add-row"><input class="form-input" id="fProblemDraft" placeholder="e.g. Doubt and second-guessing…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('problems','fProblemDraft')}"><button class="btn-small" onclick="addListItem('problems','fProblemDraft')">Add</button></div>
-      <div id="problemsList"></div>
-    </div>
-
-    <hr class="form-divider">
-
-    <div class="form-row">
-      <label class="form-label">Topics / Themes</label>
-      <div class="topic-grid" id="topicGrid"></div>
-      <div class="list-add-row"><input class="form-input" id="fTopicCustom" placeholder="Add custom topic…" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTopic()}"><button class="btn-small" onclick="addCustomTopic()">Add</button></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Related Critters</label>
-      <div class="list-add-row"><input class="form-input" id="fRelatedDraft" placeholder="e.g. Terry the Bomber…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('related','fRelatedDraft')}"><button class="btn-small" onclick="addListItem('related','fRelatedDraft')">Add</button></div>
-      <div id="relatedList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Symbiotic Relationships</label>
-      <div class="list-add-row"><input class="form-input" id="fSymbDraft" placeholder="e.g. Terry clears the path, Claude leaps…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('symbiosis','fSymbDraft')}"><button class="btn-small" onclick="addListItem('symbiosis','fSymbDraft')">Add</button></div>
-      <div id="symbiosisList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Creature Comforts Editions</label>
-      <input class="form-input" id="fEditions" placeholder="e.g. Koalalogic, Turtleology (comma separated)">
-    </div>
-
-    <hr class="form-divider">
-
-    <div class="form-row">
-      <label class="form-label">Critter Image</label>
-      <input type="file" class="form-file" id="fImage" accept="image/*" onchange="handleImageUpload(event)">
-      <img id="imagePreview" class="image-preview">
-      <input type="hidden" id="fImageData">
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Audio (note / recording)</label>
-      <input type="file" class="form-file" id="fAudio" accept="audio/*" onchange="handleAudioUpload(event)">
-      <div id="audioPreview"></div>
-      <input type="hidden" id="fAudioData">
-      <input class="form-input" id="fAudioNote" placeholder="Or add an audio note / link…" style="margin-top:6px">
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">References / Sources</label>
-      <div class="list-add-row"><input class="form-input" id="fSourceDraft" placeholder="Book, website, documentary…" onkeydown="if(event.key==='Enter'){event.preventDefault();addListItem('sources','fSourceDraft')}"><button class="btn-small" onclick="addListItem('sources','fSourceDraft')">Add</button></div>
-      <div id="sourcesList"></div>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">🐾 Try This Today</label>
-      <textarea class="form-textarea" id="fTryToday" placeholder="One practical action. Keep it simple and doable…"></textarea>
-    </div>
-
-    <div class="form-row">
-      <label class="form-label">Planning Notes (private)</label>
-      <textarea class="form-textarea" id="fNotes" placeholder="Private ideas, staging notes, plans…"></textarea>
-    </div>
-
-    <button class="btn-primary" onclick="saveCritter()">Save Critter 🐾</button>
-    <button class="btn-ghost" onclick="closeForm()">Cancel</button>
-  </div>
-</div>
 
 <!-- CONFIRM -->
 <div class="confirm-overlay" id="confirmOverlay">
@@ -585,9 +423,6 @@ let filterFamily = '';
 let filterTopic = '';
 let filterAge = '';
 let filterComfort = '';
-let formLists = {};
-let formTopics = [];
-let formFav = false;
 let pendingDeleteId = null;
 
 async function load() {
@@ -787,8 +622,7 @@ function cardHTML(c) {
       <div class="card-actions" onclick="event.stopPropagation()">
         <button class="icon-btn" onclick="openProfile('${c.id}')" title="View Profile">👁️</button>
         <button class="icon-btn" onclick="toggleFavDirect('${c.id}')" title="Favourite">${c.favorite?'⭐':'☆'}</button>
-        <button class="icon-btn" onclick="openForm('${c.id}')" title="Edit">✏️</button>
-        <button class="icon-btn" onclick="confirmDelete('${c.id}')" title="Delete">🗑️</button>
+<button class="icon-btn" onclick="CritterWorkshop.open(critters.find(x=>x.id==='${c.id}'))" title="Edit">✏️</button>        <button class="icon-btn" onclick="confirmDelete('${c.id}')" title="Delete">🗑️</button>
       </div>
     </div>${body}</div>`;
 }
@@ -800,147 +634,7 @@ function toggleFavDirect(id) {
 }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── FORM ─────────────────────────────────────────────────────────────────────
-function openForm(id) {
-  const c = id ? critters.find(x=>x.id===id) : null;
-  document.getElementById('editId').value = id||'';
-  document.getElementById('formTitle').textContent = id?`✏️ Edit — ${c.name}`:'✨ New Critter';
-  document.getElementById('fEmoji').value = c?c.emoji:'🐾';
-  document.getElementById('fName').value = c?c.name:'';
-  document.getElementById('fFamily').value = c?c.family||'':'';
-  document.getElementById('fAge').value = c?c.age||'':'';
-  document.getElementById('fStatus').value = c?c.status||'Researching':'Researching';
-  document.getElementById('fComfort').value = c?c.comfort||'':'';
-  document.getElementById('fPersonality').value = c?c.personality:'';
-  document.getElementById('fEditions').value = c?c.editions.join(', '):'';
-  document.getElementById('fNotes').value = c?c.notes:'';
-  document.getElementById('fAudioNote').value = c?c.audioNote||'':'';
-  document.getElementById('fTryToday').value = c?c.tryToday||'':'';
-  document.getElementById('fImageData').value = c?c.imageData||'':'';
-  document.getElementById('fAudioData').value = c?c.audioData||'':'';
-  formFav = c?c.favorite:false;
-  document.getElementById('fFavBtn').classList.toggle('active', formFav);
 
-  // Image preview
-  const prev = document.getElementById('imagePreview');
-  if (c && c.imageData) { prev.src=c.imageData; prev.style.display='block'; } else { prev.style.display='none'; }
-
-  // Audio preview
-  const aprev = document.getElementById('audioPreview');
-  if (c && c.audioData) { aprev.innerHTML=`<audio controls class="audio-player"><source src="${c.audioData}"></audio>`; } else { aprev.innerHTML=''; }
-
-  formLists = {
-    facts: c?[...c.facts||[]]:[],
-    quotes: c?[...c.quotes]:[],
-    wisdom: c?[...c.wisdom]:[],
-    metaphors: c?[...c.metaphors||[]]:[],
-    problems: c?[...c.problems]:[],
-    related: c?[...c.related||[]]:[],
-    symbiosis: c?[...c.symbiosis]:[],
-    sources: c?[...c.sources||[]]:[],
-  };
-  formTopics = c?[...c.topics]:[];
-  renderFormLists();
-  renderTopicGrid();
-  document.getElementById('formModal').classList.add('open');
-}
-
-function closeForm() { document.getElementById('formModal').classList.remove('open'); }
-
-function toggleFav() {
-  formFav = !formFav;
-  document.getElementById('fFavBtn').classList.toggle('active', formFav);
-}
-
-function renderFormLists() {
-  Object.keys(formLists).forEach(key => {
-    const el = document.getElementById(key+'List');
-    if (!el) return;
-    el.innerHTML = formLists[key].map((item,i) =>
-      `<div class="list-item"><span class="list-item-text">${esc(item)}</span><button class="list-item-del" onclick="removeListItem('${key}',${i})">×</button></div>`
-    ).join('');
-  });
-}
-
-function addListItem(key, inputId) {
-  const input = document.getElementById(inputId);
-  const val = input.value.trim(); if (!val) return;
-  formLists[key].push(val); input.value=''; renderFormLists();
-}
-function removeListItem(key, i) { formLists[key].splice(i,1); renderFormLists(); }
-
-function renderTopicGrid() {
-  const all = [...new Set([...PRESET_TOPICS,...formTopics])];
-  document.getElementById('topicGrid').innerHTML = all.map(t =>
-    `<button class="chip${formTopics.includes(t)?' active':''}" onclick="toggleFormTopic('${esc(t)}')">${esc(t)}</button>`
-  ).join('');
-}
-function toggleFormTopic(t) {
-  if (formTopics.includes(t)) formTopics=formTopics.filter(x=>x!==t); else formTopics.push(t);
-  renderTopicGrid();
-}
-function addCustomTopic() {
-  const input=document.getElementById('fTopicCustom');
-  const val=input.value.trim(); if(!val||formTopics.includes(val)){input.value='';return;}
-  formTopics.push(val); input.value=''; renderTopicGrid();
-}
-
-function handleImageUpload(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('fImageData').value = ev.target.result;
-    const prev = document.getElementById('imagePreview');
-    prev.src = ev.target.result; prev.style.display='block';
-  };
-  reader.readAsDataURL(file);
-}
-
-function handleAudioUpload(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('fAudioData').value = ev.target.result;
-    document.getElementById('audioPreview').innerHTML = `<audio controls class="audio-player"><source src="${ev.target.result}"></audio>`;
-  };
-  reader.readAsDataURL(file);
-}
-
-function saveCritter() {
-  const name = document.getElementById('fName').value.trim();
-  if (!name) { showToast('Add a name first 🐾'); return; }
-  const editId = document.getElementById('editId').value;
-  const critter = {
-    id: editId||genId(), name,
-    emoji: document.getElementById('fEmoji').value||'🐾',
-    family: document.getElementById('fFamily').value,
-    age: document.getElementById('fAge').value,
-    status: document.getElementById('fStatus').value,
-    comfort: document.getElementById('fComfort').value,
-    favorite: formFav,
-    personality: document.getElementById('fPersonality').value.trim(),
-    facts: [...formLists.facts],
-    quotes: [...formLists.quotes],
-    wisdom: [...formLists.wisdom],
-    metaphors: [...formLists.metaphors],
-    problems: [...formLists.problems],
-    topics: [...formTopics],
-    editions: document.getElementById('fEditions').value.split(',').map(s=>s.trim()).filter(Boolean),
-    related: [...formLists.related],
-    symbiosis: [...formLists.symbiosis],
-    sources: [...formLists.sources],
-    notes: document.getElementById('fNotes').value.trim(),
-    tryToday: document.getElementById('fTryToday').value.trim(),
-    imageData: document.getElementById('fImageData').value,
-    audioData: document.getElementById('fAudioData').value,
-    audioNote: document.getElementById('fAudioNote').value.trim(),
-  };
-  if (editId) { const idx=critters.findIndex(c=>c.id===editId); if(idx>-1) critters[idx]=critter; }
-  else critters.push(critter);
-  closeForm(); renderAll();
-  upsertCritterRemote(critter);
-  showToast(editId?'Critter updated ✓':'Critter added 🐾');
-}
 
 // ── DELETE ───────────────────────────────────────────────────────────────────
 function confirmDelete(id) {
@@ -1125,8 +819,7 @@ function buildProfile(c) {
     </div>
     ${storyTab}${lessonTab}${quotesTab}${comfortTab}${friendsTab}
     <div style="padding:16px 16px 40px">
-      <button class="btn-primary" onclick="closeProfile();openForm('${c.id}')">✏️ Edit This Companion</button>
-    </div>`;
+onclick="closeProfile();CritterWorkshop.open(critters.find(x=>x.id==='${c.id}'))"    </div>`;
 }
 
 // ── JSON BACKUP / RESTORE ─────────────────────────────────────────────────────
@@ -1286,6 +979,7 @@ function downloadTemplate() {
 
 initAuth();
 </script>
+<script src="workshop.js"></script>
+<script src="critter-workshop.config.js"></script>
 </body>
 </html>
-
