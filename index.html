@@ -818,11 +818,10 @@ function buildProfile(c) {
       <div class="profile-tab" data-tab="friends" onclick="switchProfileTab('friends')">🕸️ Friends</div>
     </div>
     ${storyTab}${lessonTab}${quotesTab}${comfortTab}${friendsTab}
-    <div style="padding:16px 16px 40px">
 <div style="padding:16px 16px 40px">
       <button class="btn-primary" onclick="closeProfile();CritterWorkshop.open(critters.find(x=>x.id==='${c.id}'))">✏️ Edit This Companion</button>
-    </div>`;}
-
+    </div>`;
+}
 // ── JSON BACKUP / RESTORE ─────────────────────────────────────────────────────
 function exportJSON() {
   const date = new Date().toISOString().slice(0,10);
